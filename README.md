@@ -1,27 +1,75 @@
-# Atv8
+# Atv8 - TodoList - Services Angular
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 16.2.8.
+<img src="img/main.png">
 
-## Development server
+## Implementaçao com React
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+Se fossemos realizar a mesma implementação de serviços em React teriamos que utilizar Hooks, ou algo similar. O código ficaria mais ou menos assim:
 
-## Code scaffolding
+```javascript
+import { useState, createContext, useContext } from 'react';
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+const TodoContext = createContext();
 
-## Build
+export default function TodoProvider({ children }) {
+  const [todos, setTodos] = useState([]);
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+  const addTodo = (todo) => {
+    setTodos([...todos, todo]);
+  };
 
-## Running unit tests
+  const removeTodo = (todo) => {
+    setTodos(todos.filter((t) => t.id !== todo.id));
+  };
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+  const updateTodo = (todo) => {
+    setTodos(
+      todos.map((t) => {
+        if (t.id === todo.id) {
+          return todo;
+        }
+        return t;
+      })
+    );
+  };
 
-## Running end-to-end tests
+  return (
+    <TodoContext.Provider value={{ todos, addTodo, removeTodo, updateTodo }}>
+      {children}
+    </TodoContext.Provider>
+  );
+}
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+export function useTodo() {
+  const context = useContext(TodoContext);
+  const { todos, addTodo, removeTodo, updateTodo } = context;
+  return { todos, addTodo, removeTodo, updateTodo };
+}
+```
 
-## Further help
+Agora bastaria utilizar esse serviço em qualquer componente da aplicação, por exemplo:
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+```javascript
+import { useTodo } from './TodoContext';
+
+export default function TodoList() {
+  const { todos, removeTodo } = useTodo();
+
+  return (
+    <div>
+      <h1>Todo List</h1>
+      <ul>
+        {todos.map((todo) => (
+          <li key={todo.id}>
+            {todo.title} - {todo.description}
+            <button onClick={() => removeTodo()}>Remover</button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+
+
